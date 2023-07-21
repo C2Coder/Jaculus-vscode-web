@@ -1,53 +1,84 @@
 {
-  "name": "jaculus-web",
-  "displayName": "Jaculus web",
-  "description": "Jaculus web",
-  "version": "0.0.1",
-  "publisher": "RoboticsBrno",
+  "name": "webusb-web-extension",
+  "displayName": "WebUSB Web Extension",
+  "description": "VS Code Web Extension demonstrating WebUSB access",
+  "version": "1.0.0",
+  "preview": true,
+  "private": true,
+  "publisher": "thegecko",
+  "author": "Rob Moran <rob@thegecko.org>",
+  "license": "MIT",
+  "browser": "dist/browser/extension.js",
+  "repository": "https://github.com/thegecko/webusb-web-extension",
+  "qna": false,
   "engines": {
-    "vscode": "^1.80.0"
+    "vscode": "^1.50.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
-  "browser": "./dist/web/extension.js",
+  "scripts": {
+    "prepare": "yarn build",
+    "clean": "git clean -f -x ./node_modules ./dist",
+    "build": "webpack --mode production",
+    "watch": "webpack -w",
+    "package": "vsce package --yarn",
+    "browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. ."
+  },
+  "dependencies": {
+    "@vscode/webview-ui-toolkit": "^0.9.1",
+    "crc": "^4.3.2",
+    "https-browserify": "^1.0.0",
+    "node-polyfill-webpack-plugin": "^2.0.1",
+    "os-browserify": "^0.3.0",
+    "path-browserify": "^1.0.1",
+    "util": "^0.12.5"
+  },
+  "devDependencies": {
+    "@types/node": "^12.20.0",
+    "@types/vscode": "^1.50.0",
+    "@types/vscode-webview": "^1.57.0",
+    "@types/w3c-web-usb": "^1.0.6",
+    "@vscode/test-web": "^0.0.22",
+    "copy-webpack-plugin": "^10.2.4",
+    "process": "0.11.10",
+    "ts-loader": "^9.2.6",
+    "typescript": "^3.9.6",
+    "vsce": "^2.6.4",
+    "webpack": "^5.64.0",
+    "webpack-cli": "^4.9.1"
+  },
   "contributes": {
     "commands": [
       {
-        "command": "jaculus-web.connectWebSerial",
-        "title": "Connect to USB",
-        "category": "Jaculus web"
+        "command": "webusb.listDevices",
+        "title": "WebUSB: List Devices"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "webusb",
+          "title": "WebUSB",
+          "icon": "$(preview)"
+        }
+      ]
+    },
+    "views": {
+      "webusb": [
+        {
+          "id": "webusb.webview",
+          "type": "webview",
+          "name": "WebUSB",
+          "icon": "$(preview)"
+        }
+      ]
+    }
   },
-  "scripts": {
-    "test": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. --extensionTestsPath=dist/web/test/suite/index.js",
-    "pretest": "npm run compile-web",
-    "vscode:prepublish": "npm run package-web",
-    "compile-web": "webpack",
-    "watch-web": "webpack --watch",
-    "package-web": "webpack --mode production --devtool hidden-source-map",
-    "lint": "eslint src --ext ts",
-    "run-in-browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. ."
-  },
-  "devDependencies": {
-    "@types/mocha": "^10.0.1",
-    "@types/vscode": "^1.80.0",
-    "@types/webpack-env": "^1.18.0",
-    "@typescript-eslint/eslint-plugin": "^5.59.1",
-    "@typescript-eslint/parser": "^5.59.1",
-    "@vscode/test-web": "^0.0.43",
-    "assert": "^2.0.0",
-    "eslint": "^8.39.0",
-    "mocha": "^10.2.0",
-    "process": "^0.11.10",
-    "ts-loader": "^9.4.2",
-    "typescript": "^5.0.4",
-    "webpack": "^5.81.0",
-    "webpack-cli": "^5.0.2"
-  },
-  "dependencies": {
-    "jaculus-tools": "^0.0.15"
-  }
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "extensionKind": [
+    "ui"
+  ]
 }
