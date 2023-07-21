@@ -7,6 +7,7 @@ window.addEventListener('load', () => {
     const listButtonUsb = document.getElementById('list-button-usb')!;
     const buttonMonitorSerial = document.getElementById('monitor-serial')!;
     const buttonUpload = document.getElementById('upload')!;
+    const buttonTranspile = document.getElementById('transpile')!;
 
     requestButtonUsb.addEventListener('click', () => vscodeApi.postMessage('workbench.experimental.requestUsbDevice'));
     requestButtonSerial.addEventListener('click', () => vscodeApi.postMessage('workbench.experimental.requestSerialPort'));
@@ -15,4 +16,5 @@ window.addEventListener('load', () => {
 
     buttonMonitorSerial.addEventListener('click', () => vscodeApi.postMessage('webusb.monitorSerial'));
     buttonUpload.addEventListener('click', () => vscodeApi.postMessage('webusb.upload'));
+    buttonTranspile.addEventListener('click', () => vscodeApi.postMessage('webusb.transpile'));
 });

@@ -1,6 +1,17 @@
 import * as vscode from 'vscode';
 import { JacDevice } from "../jaculus-tools/src/device/jacDevice";
 import {WebSerialStream} from "./jac-glue";
+import * as ts from 'typescript';
+
+const transpileTypeScriptToJavaScript = (tsCode: string): string => {
+    // Transpile the TypeScript code to JavaScript.
+    const transpileOutput = ts.transpileModule(tsCode, {
+      compilerOptions: { module: ts.ModuleKind.CommonJS }
+    });
+
+    // Return the JavaScript code.
+    return transpileOutput.outputText;
+  };
 
 export class Commands {
 
@@ -13,6 +24,7 @@ export class Commands {
             vscode.commands.registerCommand('webusb.listDevicesSerial', () => this.listDevicesSerial()),
             vscode.commands.registerCommand('webusb.monitorSerial', () => this.monitorSerial()),
             vscode.commands.registerCommand('webusb.upload', () => this.writeFile()),
+            vscode.commands.registerCommand('webusb.transpile', () => this.transpileFile()),
         );
 
         if (!navigator.usb) {
@@ -133,6 +145,30 @@ export class Commands {
         });
 
         this.channel.appendLine('Done!')
+    }
+
+
+
+    protected async transpileFile(): Promise<void> {
+        this.channel.appendLine('Transpiling file...')
+
+        let fileRaw = await vscode.window.showOpenDialog({
+            canSelectFiles: true,
+        }
+        );
+
+        if (fileRaw === undefined) {
+            vscode.window.showErrorMessage('No file selected');
+            return;
+        }
+        let FileContents = await vscode.workspace.fs.readFile(fileRaw[0]);
+
+        let decoder = new TextDecoder('utf8');
+        let code = decoder.decode(FileContents);
+        this.channel.appendLine(`TS Code: ${code}`)
+
+        let transpileFile = transpileTypeScriptToJavaScript(code);
+        this.channel.appendLine(`JS Code: ${transpileFile}`)
     }
 
 }

@@ -72,6 +72,9 @@ export class WebUsbWebview implements vscode.WebviewViewProvider {
                     <vscode-button id='upload' title='Upload' aria-label='List WebUSB Devices'>
                         Upload
                     </vscode-button>
+                    <vscode-button id='transpile' title='Upload' aria-label='List WebUSB Devices'>
+                        Transpile
+                    </vscode-button>
 
                     <div id='monitor'></div>
                 </body>
