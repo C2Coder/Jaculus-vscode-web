@@ -1,7 +1,7 @@
 {
-  "name": "webusb-web-extension",
-  "displayName": "WebUSB Web Extension",
-  "description": "VS Code Web Extension demonstrating WebUSB access",
+  "name": "Jaculus-web-extension",
+  "displayName": "Jaculus Web Extension",
+  "description": "VS Code Web Extension for Jaculus",
   "version": "1.0.0",
   "preview": true,
   "private": true,
@@ -9,7 +9,7 @@
   "author": "Rob Moran <rob@thegecko.org>",
   "license": "MIT",
   "browser": "dist/browser/extension.js",
-  "repository": "https://github.com/thegecko/webusb-web-extension",
+  "repository": "https://github.com/thegecko/jaculus-web-web-extension",
   "qna": false,
   "engines": {
     "vscode": "^1.50.0"
@@ -35,41 +35,51 @@
     "util": "^0.12.5"
   },
   "devDependencies": {
-    "@types/node": "^12.20.0",
-    "@types/vscode": "^1.50.0",
-    "@types/vscode-webview": "^1.57.0",
-    "@types/w3c-web-usb": "^1.0.6",
-    "@vscode/test-web": "^0.0.22",
-    "copy-webpack-plugin": "^10.2.4",
+    "@types/node": "^22.7.5",
+    "@types/vscode": "^1.94.0",
+    "@types/vscode-webview": "^1.57.5",
+    "@types/w3c-web-usb": "^1.0.10",
+    "@vscode/test-web": "^0.0.62",
+    "copy-webpack-plugin": "^12.0.2",
     "process": "0.11.10",
-    "ts-loader": "^9.2.6",
-    "typescript": "^3.9.6",
-    "vsce": "^2.6.4",
-    "webpack": "^5.64.0",
-    "webpack-cli": "^4.9.1"
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.6.3",
+    "vsce": "^1.97.0",
+    "webpack": "^5.95.0",
+    "webpack-cli": "^5.1.4"
   },
   "contributes": {
     "commands": [
       {
-        "command": "webusb.listDevices",
-        "title": "WebUSB: List Devices"
+        "command": "jaculus-web.listDevices",
+        "title": "Jaculus: List Devices"
+      },
+      {
+        "command": "jaculus-web.build",
+        "title": "Jaculus: Build"
+      },
+      {
+        "command": "jaculus-web.flash",
+        "title": "Jaculus: Flash"
+      },
+      {
+        "command": "jaculus-web.monitor",
+        "title": "Jaculus: Monitor"
+      },
+      {
+        "command": "jaculus-web.build-flash-monitor",
+        "title": "Jaculus: Build Flash Monitor"
+      },
+      {
+        "command": "jaculus-web.connect",
+        "title": "Jaculus: Connect"
       }
     ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "webusb",
-          "title": "WebUSB",
-          "icon": "$(preview)"
-        }
-      ]
-    },
-    "views": {
-      "webusb": [
-        {
-          "id": "webusb.webview",
-          "type": "webview",
-          "name": "WebUSB",
+          "id": "jaculus-web",
+          "title": "Jaculus",
           "icon": "$(preview)"
         }
       ]

@@ -1,15 +1,15 @@
 import * as vscode from 'vscode';
 
-export class WebUsbWebview implements vscode.WebviewViewProvider {
+export class JaculusWebView implements vscode.WebviewViewProvider {
 
-    private static viewType = 'webusb.webview';
+    private static viewType = 'jaculus-web.webview';
 
     public constructor(protected extensionUri: vscode.Uri) {
     }
 
     public async activate(context: vscode.ExtensionContext): Promise<void> {
         context.subscriptions.push(
-            vscode.window.registerWebviewViewProvider(WebUsbWebview.viewType, this)
+            vscode.window.registerWebviewViewProvider(JaculusWebView.viewType, this)
         );
     }
 
@@ -25,7 +25,7 @@ export class WebUsbWebview implements vscode.WebviewViewProvider {
                 vscode.commands.executeCommand(command);
             }
         });
-        webviewView.title = 'WebUSƒB';
+        webviewView.title = 'jaculusWeb';
         webviewView.show();
     }
 
@@ -54,29 +54,31 @@ export class WebUsbWebview implements vscode.WebviewViewProvider {
                     <script type='module' src='${mainUri}'></script>
                 </head>
                 <body>
-                    <vscode-button id='request-button-serial' title='Authorise WebUSB Device' aria-label='Authorise WebUSB Device'>
-                        Serial
-                    </vscode-button>
-                    <vscode-button id='request-button-usb' title='Authorise WebUSB Device' aria-label='Authorise WebUSB Device'>
-                        USB
-                    </vscode-button>
-                    <vscode-button id='list-button-serial' title='List WebUSB Devices' aria-label='List WebUSB Devices'>
-                        List Devices Serial
-                    </vscode-button>
-                    <vscode-button id='list-button-usb' title='List WebUSB Devices' aria-label='List WebUSB Devices'>
-                        List Devices USB
-                    </vscode-button>
-                    <vscode-button id='monitor-serial' title='List WebUSB Devices' aria-label='List WebUSB Devices'>
-                        Monitor
-                    </vscode-button>
-                    <vscode-button id='upload' title='Upload' aria-label='List WebUSB Devices'>
-                        Upload
-                    </vscode-button>
-                    <vscode-button id='transpile' title='Upload' aria-label='List WebUSB Devices'>
-                        Transpile
+
+                    <vscode-button id='button-connect' title='Connect to Jaculus Device' aria-label='List WebUSB Devices'>
+                        Connect
                     </vscode-button>
 
-                    <div id='monitor'></div>
+                    <vscode-button id='button-list' title='Flash Code to Jaculus Device' aria-label='List WebUSB Devices'>
+                        List
+                    </vscode-button>
+
+                    <vscode-button id='button-build' title='Build/Compile Typescript to Javascript' aria-label='List WebUSB Devices'>
+                        Build
+                    </vscode-button>
+
+                    <vscode-button id='button-flash' title='Flash Code to Jaculus Device' aria-label='List WebUSB Devices'>
+                        Flash
+                    </vscode-button>
+
+                    <vscode-button id='button-monitor' title='Monitor Jaculus Device' aria-label='List WebUSB Devices'>
+                        Monitor
+                    </vscode-button>
+
+                    <vscode-button id='button-build-flash-monitor' title='Build Flash and Monitor Jaculus Device' aria-label='List WebUSB Devices'>
+                        Build Flash Monitor
+                    </vscode-button>
+                    
                 </body>
             </html>
         `;

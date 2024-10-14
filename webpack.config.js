@@ -78,7 +78,7 @@ module.exports = [
         ...common,
         target: 'web',
         entry: {
-            devices: './src/views/webusb-view.ts'
+            devices: './src/views/jaculus-view.ts'
         },
         output: {
             filename: '[name].js',
