@@ -1,10 +1,26 @@
 import * as vscode from 'vscode';
 import { JacDevice } from "../jaculus-tools/src/device/jacDevice";
 import { WebSerialStream } from "./jac-glue";
+import * as ts from "typescript";
+import * as fs from 'fs';
 
-async function readDirectory(path: vscode.Uri) {
+async function readDirectory(path: vscode.Uri):Promise<vscode.Uri[]> {
+    let out:vscode.Uri[] = []
+
     let tmp = await vscode.workspace.fs.readDirectory(path)
-    return tmp
+
+    for (let dir of tmp){
+        if (dir[1] == vscode.FileType.Directory){
+            console.log("Found dir")
+            let t = await readDirectory(vscode.Uri.joinPath(path, dir[0]))
+            out = out.concat(t)
+        }
+
+        if (dir[1] == vscode.FileType.File){
+            out.unshift(vscode.Uri.joinPath(path, dir[0]))
+        }
+    };
+    return out
 }
 
 
@@ -133,9 +149,44 @@ export class Commands {
             folderPath = fileRaw[0];
         }
 
+        console.log("Files")
+        let files = await readDirectory(folderPath)
+        console.log(files)
 
-        console.log(folderPath)
+        for (let file of files){
+            if (file.path.includes("@types") || !file.path.includes(".ts")){
+                continue
+            }
 
+            try {
+                // Read the TypeScript file content
+                const tsCode = await vscode.workspace.fs.readFile(file);
+                const tsCodeStr = new TextDecoder().decode(tsCode);
+            
+                // Set TypeScript compiler options
+                const compilerOptions: ts.CompilerOptions = {
+                  module: ts.ModuleKind.ES2020,
+                  target: ts.ScriptTarget.ES2020,
+                  lib: ["es2020"],
+                  moduleResolution: ts.ModuleResolutionKind.Node10,
+                  sourceMap: false,
+                  outDir: "build",
+                  rootDir: "src",
+                };
+            
+                // Transpile the TypeScript code to JavaScript
+                const jsCode = ts.transpile(tsCodeStr, compilerOptions);
+            
+                // Write the transpiled JavaScript code to a file
+                const jsUri = file.with({ path: file.path.replace(/\.ts$/, '.js').replace("src", "build") });
+                await vscode.workspace.fs.writeFile(jsUri, new TextEncoder().encode(jsCode));
+            
+                vscode.window.showInformationMessage(`File converted: ${jsUri.path}`);
+              } catch (error) {
+                //@ts-ignore
+                vscode.window.showErrorMessage(`Error converting file: ${error.message}`);
+              }
+        }
 
 
     }
