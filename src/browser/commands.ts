@@ -2,42 +2,86 @@ import * as vscode from 'vscode';
 import { JacDevice } from "../jaculus-tools/src/device/jacDevice";
 import { WebSerialStream } from "./jac-glue";
 import * as ts from "typescript";
-import * as fs from 'fs';
 
-async function readDirectory(path: vscode.Uri):Promise<vscode.Uri[]> {
-    let out:vscode.Uri[] = []
+async function readDirectory(path: vscode.Uri): Promise<[vscode.Uri[], vscode.Uri[]]> {
+    let outFiles: vscode.Uri[] = []
+    let outFolders: vscode.Uri[] = []
 
     let tmp = await vscode.workspace.fs.readDirectory(path)
 
-    for (let dir of tmp){
-        if (dir[1] == vscode.FileType.Directory){
-            console.log("Found dir")
-            let t = await readDirectory(vscode.Uri.joinPath(path, dir[0]))
-            out = out.concat(t)
+    for (let dir of tmp) {
+        if (dir[1] == vscode.FileType.Directory) {
+
+            outFolders.push(vscode.Uri.joinPath(path, dir[0]))
+
+            let [t, _] = await readDirectory(vscode.Uri.joinPath(path, dir[0]))
+            outFiles = outFiles.concat(t)
         }
 
-        if (dir[1] == vscode.FileType.File){
-            out.unshift(vscode.Uri.joinPath(path, dir[0]))
+        if (dir[1] == vscode.FileType.File) {
+            outFiles.push(vscode.Uri.joinPath(path, dir[0]))
         }
     };
-    return out
+    return [outFiles, outFolders]
+}
+function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+type btnType = {
+    selectPort: vscode.StatusBarItem;
+    connect: vscode.StatusBarItem;
+    build: vscode.StatusBarItem;
+    flash: vscode.StatusBarItem;
+    monitor: vscode.StatusBarItem;
+    buildFlashMonitor: vscode.StatusBarItem;
+    installLib: vscode.StatusBarItem;
+}
+
+type exampleType = {
+    file: string;
+    name: string;
+};
+
+type libType = {
+    name: string;
+    description: string;
+    folder: string;
+    files: string[];
+    examples: exampleType[];
+}
+
+const librariesUri = vscode.Uri.parse("https://c2coder.github.io/Jaculus-libraries/")
 
 export class Commands {
     protected channel = vscode.window.createOutputChannel('Jaculus');
     protected device: JacDevice | undefined;
     protected port: any | undefined;
 
-    public async activate(context: vscode.ExtensionContext): Promise<void> {
+    protected connected: boolean = false;
+    protected monitoring: boolean = false;
+
+    protected buttons: btnType | undefined;
+
+    public async activate(context: vscode.ExtensionContext, buttons: btnType): Promise<void> {
+        this.buttons = buttons;
+
         context.subscriptions.push(
-            vscode.commands.registerCommand('jaculus-web.connect', () => this.connect()),
-            vscode.commands.registerCommand('jaculus-web.listDevices', () => this.listDevices()),
-            vscode.commands.registerCommand('jaculus-web.monitor', () => this.monitor()),
-            vscode.commands.registerCommand('jaculus-web.stopMonitor', () => this.stopMonitor()),
-            vscode.commands.registerCommand('jaculus-web.flash', () => this.flash()),
-            vscode.commands.registerCommand('jaculus-web.build', () => this.build()),
-            vscode.commands.registerCommand('jaculus-web.build-flash-monitor', () => this.buildFlashMonitor())
+            vscode.commands.registerCommand('jaculus.openInstaller', () => this.openInstaller()),
+            vscode.commands.registerCommand('jaculus.openGettingStarted', () => this.openGettingStarted()),
+
+            vscode.commands.registerCommand('jaculus.selectPort', () => this.selectPort()),
+            vscode.commands.registerCommand('jaculus.connect', () => this.connect()),
+            vscode.commands.registerCommand('jaculus.disconnect', () => this.disconnect()),
+            vscode.commands.registerCommand('jaculus.listDevices', () => this.listDevices()),
+            vscode.commands.registerCommand('jaculus.build', () => this.build()),
+            vscode.commands.registerCommand('jaculus.flash', () => this.flash()),
+            vscode.commands.registerCommand('jaculus.monitor', () => this.monitor()),
+            vscode.commands.registerCommand('jaculus.stopMonitor', () => this.stopMonitor()),
+            vscode.commands.registerCommand('jaculus.build-flash-monitor', () => this.buildFlashMonitor()),
+
+            vscode.commands.registerCommand('jaculus.installLib', () => this.installLib()),
+            vscode.commands.registerCommand('jaculus.getLibExample', () => this.getLibExample())
         );
 
         if (!navigator.usb) {
@@ -50,28 +94,227 @@ export class Commands {
         }
     }
 
-    protected async connect(): Promise<void> {
+    protected async installLib(): Promise<void> {
+        try {
+            let folder = await vscode.window.showOpenDialog({
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+            });
 
+
+            if (folder === undefined) {
+                vscode.window.showErrorMessage('No folder selected');
+                return;
+            }
+
+            const response = await fetch(vscode.Uri.joinPath(librariesUri, "data", "manifest.json").toString());
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const jsonData: libType[] = await response.json();
+
+
+            const libraries: { [key: string]: libType } = {};
+            console.log(jsonData)
+            for (const libData of jsonData) {
+                libraries[libData.name] = libData;
+            }
+
+
+            const options: vscode.QuickPickItem[] = [];
+
+            for (let libData of Object.values(libraries)) {
+                options.push({
+                    label: libData.name,
+                    detail: libData.description,
+                })
+            }
+
+            const selectedLibrary = await vscode.window.showQuickPick(options, {
+                placeHolder: 'Select an library to install',
+            });
+
+            if (!selectedLibrary) {
+                vscode.window.showInformationMessage('No option selected');
+                return;
+            }
+
+            vscode.window.showInformationMessage(`Installing: ${selectedLibrary.label}`);
+
+            const libData: libType = libraries[selectedLibrary.label]
+
+            for (let file of libData.files) {
+                const response = await fetch(vscode.Uri.joinPath(librariesUri, "data", libData.folder, file).toString());
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const fileContents = await response.text();
+                await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(folder[0], "src", "libs", file), new TextEncoder().encode(fileContents))
+            }
+
+            vscode.window.showInformationMessage(`Installed: ${selectedLibrary.label}`);
+
+
+        } catch (error) {
+            vscode.window.showErrorMessage(`Error fetching JSON data: ${error}`);
+            console.error(error);
+        }
+    }
+
+    protected async getLibExample(): Promise<void> {
+        try {
+            let folder = await vscode.window.showOpenDialog({
+                canSelectFiles: false,
+                canSelectFolders: true,
+                canSelectMany: false,
+            });
+
+
+            if (folder === undefined) {
+                vscode.window.showErrorMessage('No folder selected');
+                return;
+            }
+
+            const jsonresponse = await fetch(vscode.Uri.joinPath(librariesUri, "data", "manifest.json").toString());
+            if (!jsonresponse.ok) {
+                throw new Error(`HTTP error! status: ${jsonresponse.status}`);
+            }
+            const jsonData: libType[] = await jsonresponse.json();
+
+
+            const libraries: { [key: string]: libType } = {};
+            const examples: { [key: string]:{[key: string]: exampleType} } = {};
+            for (const libData of jsonData) {
+                libraries[libData.name] = libData;
+                for (const exampleData of libData.examples) {
+                    if (examples[libData.name] == undefined){
+                        examples[libData.name]={}
+                    }
+                    examples[libData.name][exampleData.name] = exampleData;
+                }
+            }
+
+            console.log(libraries);
+            console.log(examples)
+
+            const libOptions: vscode.QuickPickItem[] = [];
+
+            for (let libData of Object.values(libraries)) {
+                libOptions.push({
+                    label: libData.name,
+                    detail: libData.description,
+                })
+            }
+
+            const selectedLibrary = await vscode.window.showQuickPick(libOptions, {
+                placeHolder: 'Select an library',
+            });
+
+            if (!selectedLibrary) {
+                vscode.window.showWarningMessage('No library selected');
+                return;
+            }
+
+
+            const exampleOptions: vscode.QuickPickItem[] = [];
+
+            for (let exampleData of Object.values(examples[selectedLibrary.label])) {
+                exampleOptions.push({
+                    label: exampleData.name,
+                    //detail: exampleData.description,
+                })
+            }
+
+            const selectedExample = await vscode.window.showQuickPick(exampleOptions, {
+                placeHolder: 'Select an example to get',
+            });
+
+            if (!selectedExample) {
+                vscode.window.showWarningMessage('No example selected');
+                return;
+            }
+
+            vscode.window.showInformationMessage(`Getting: ${selectedExample.label} from ${selectedLibrary.label}`);
+            const libData: libType = libraries[selectedLibrary.label]
+            const exampleData: exampleType = examples[selectedLibrary.label][selectedExample.label]
+
+
+            const response = await fetch(vscode.Uri.joinPath(librariesUri, "data", libData.folder, exampleData.file).toString());
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const fileContents = await response.text();
+
+            await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(folder[0], "src", `${libData.name}-${exampleData.file.split("/").at(-1)}`), new TextEncoder().encode(fileContents))
+
+        } catch (error) {
+            vscode.window.showErrorMessage(`Error fetching JSON data: ${error}`);
+            console.error(error);
+        }
+    }
+
+    protected async openInstaller(): Promise<void> {
+        const targetUrl = vscode.Uri.parse('https://installer.jaculus.org'); // Replace with your URL
+        vscode.env.openExternal(targetUrl);
+    }
+
+    protected async openGettingStarted(): Promise<void> {
+        const targetUrl = vscode.Uri.parse('https://jaculus.org/getting-started'); // Replace with your URL
+        vscode.env.openExternal(targetUrl);
+    }
+
+
+    protected async selectPort(): Promise<void> {
         vscode.commands.executeCommand("workbench.experimental.requestSerialPort");
+    }
+
+    protected async connect(): Promise<void> {
+        this.connected = true;
+
+        if (this.buttons == undefined) {
+            return
+        }
+        this.buttons.connect.command = "jaculus-web.disconnect";
+        this.buttons.connect.text = "$(plug) Disconnect";
+        this.buttons.connect.tooltip = "Jaculus Disconnect";
 
         // @ts-ignore
-        const list = await navigator.serial.getPorts();
-        this.port = list[0];
+        const list: any[] = await navigator.serial.getPorts();
 
+        if (list.length == 0) {
+            vscode.window.showErrorMessage("No ports avaliable");
+            return;
+        }
+
+        this.port = list[0];
         await this.port.open({ baudRate: 921600 });
         let stream = new WebSerialStream(this.port);
         this.device = new JacDevice(stream);
 
         vscode.window.showInformationMessage('Connected');
-
     }
 
     protected async disconnect(): Promise<void> {
+        this.connected = false;
+
+        if (this.buttons == undefined) {
+            return
+        }
+
+        this.buttons.connect.command = "jaculus-web.connect";
+        this.buttons.connect.text = "$(plug) Connect";
+        this.buttons.connect.tooltip = "Jaculus Connect";
+
         if (this.device === undefined) {
             vscode.window.showErrorMessage('Disconnect: No device connected');
             return;
         }
-        await this.device?.destroy();
+
+        this.device.destroy();
+        this.port.close();
 
         vscode.window.showInformationMessage('Disconnected');
     }
@@ -93,6 +336,16 @@ export class Commands {
     }
 
     protected async monitor(): Promise<void> {
+        this.monitoring = true;
+
+        if (this.buttons == undefined) {
+            return
+        }
+
+        this.buttons.monitor.command = "jaculus-web.stopMonitor";
+        this.buttons.monitor.text = "$(device-desktop) Stop Monitoring";
+        this.buttons.monitor.tooltip = "Jaculus Stop Monitoring";
+
         if (this.device === undefined) {
             vscode.window.showErrorMessage('Monitor: No device connected');
             return;
@@ -106,11 +359,21 @@ export class Commands {
             this.channel.append(data.toString());
         });
 
+        this.channel.show();
+
         vscode.window.showInformationMessage('Monitoring device');
     }
 
     protected async stopMonitor(): Promise<void> {
-        vscode.window.showInformationMessage('Stop Monitor')
+        this.monitoring = false;
+
+        if (this.buttons == undefined) {
+            return
+        }
+
+        this.buttons.monitor.command = "jaculus-web.monitor";
+        this.buttons.monitor.text = "$(device-desktop) Monitor";
+        this.buttons.monitor.tooltip = "Jaculus Monitor";
 
         if (this.device === undefined) {
             vscode.window.showErrorMessage('Stop Monitor: No device connected');
@@ -127,8 +390,6 @@ export class Commands {
     }
 
     protected async build(rawpath?: vscode.Uri): Promise<void> {
-        vscode.window.showInformationMessage('Build')
-
         let folderPath: vscode.Uri | undefined;
 
         if (typeof rawpath !== 'undefined') { // path is string
@@ -149,12 +410,12 @@ export class Commands {
             folderPath = fileRaw[0];
         }
 
-        console.log("Files")
-        let files = await readDirectory(folderPath)
-        console.log(files)
+        vscode.window.showInformationMessage('Building: ' + folderPath.path)
 
-        for (let file of files){
-            if (file.path.includes("@types") || !file.path.includes(".ts")){
+        let [files, _] = await readDirectory(folderPath)
+
+        for (let file of files) {
+            if (file.path.includes("@types") || !file.path.includes(".ts")) {
                 continue
             }
 
@@ -162,39 +423,34 @@ export class Commands {
                 // Read the TypeScript file content
                 const tsCode = await vscode.workspace.fs.readFile(file);
                 const tsCodeStr = new TextDecoder().decode(tsCode);
-            
+
                 // Set TypeScript compiler options
                 const compilerOptions: ts.CompilerOptions = {
-                  module: ts.ModuleKind.ES2020,
-                  target: ts.ScriptTarget.ES2020,
-                  lib: ["es2020"],
-                  moduleResolution: ts.ModuleResolutionKind.Node10,
-                  sourceMap: false,
-                  outDir: "build",
-                  rootDir: "src",
+                    module: ts.ModuleKind.ES2020,
+                    target: ts.ScriptTarget.ES2020,
+                    lib: ["es2020"],
+                    moduleResolution: ts.ModuleResolutionKind.Node10,
+                    sourceMap: false,
+                    outDir: "build",
+                    rootDir: "src",
                 };
-            
+
                 // Transpile the TypeScript code to JavaScript
                 const jsCode = ts.transpile(tsCodeStr, compilerOptions);
-            
+
                 // Write the transpiled JavaScript code to a file
                 const jsUri = file.with({ path: file.path.replace(/\.ts$/, '.js').replace("src", "build") });
                 await vscode.workspace.fs.writeFile(jsUri, new TextEncoder().encode(jsCode));
-            
-                vscode.window.showInformationMessage(`File converted: ${jsUri.path}`);
-              } catch (error) {
+            } catch (error) {
                 //@ts-ignore
                 vscode.window.showErrorMessage(`Error converting file: ${error.message}`);
-              }
+            }
         }
 
-
+        vscode.window.showInformationMessage('Done Building')
     }
 
-
     protected async flash(rawpath?: vscode.Uri): Promise<void> {
-        vscode.window.showInformationMessage('Flash')
-
         if (this.device === undefined) {
             vscode.window.showErrorMessage('Flash: No device connected');
             return;
@@ -220,9 +476,12 @@ export class Commands {
             folderPath = fileRaw[0];
         }
 
-        const files = [vscode.Uri.joinPath(folderPath, "build", "index.js")]
+        vscode.window.showInformationMessage('Flashing: ' + folderPath.path)
 
         let device = this.device;
+
+        let decoder = new TextDecoder('utf8');
+        let [buildFiles, buildDirs] = await readDirectory(vscode.Uri.joinPath(folderPath, "build"))
 
         await device.controller.lock().catch((err) => {
             console.error("Error locking device: " + err);
@@ -237,25 +496,50 @@ export class Commands {
             console.log("Stopped device")
         });
 
-        let decoder = new TextDecoder('utf8');
+        // TODO - add a feature for not sending same files
+        /*let espDir = await device.uploader.listDirectory("code").catch((err) => {
+            console.error("Error reading code dir: " + err);
+        }).then(() => {
+            console.log("Read code dir")
+        });
 
-        //files.forEach(async file => {
-        let file = files[0]
+        let espHash = await device.uploader.getDirHashes("code").catch((err) => {
+            console.error("Error getting hashes: " + err);
+        }).then(() => {
+            console.log("Got hashes from device")
+        });*/
 
-        let FileContents = await vscode.workspace.fs.readFile(file);
 
-        let code = decoder.decode(FileContents);
-        this.channel.appendLine(`Appending code: ${code}`)
+        for (let dir of buildDirs) {
 
-        let pathEsp: string = "code/" + file.path.split("build/")[1];
+            let espPath = "code/" + dir.path.replace(vscode.Uri.joinPath(folderPath, "build").path, "");
+            await device.uploader.createDirectory(espPath).catch((err) => {
+                console.error("Error creating dir: " + espPath + " err:" + err);
+            }).then(() => {
+                console.log("Stopped ")
+            });
+        }
 
-        let buff = Buffer.from(code, "utf-8")
-        const cmd = await device.uploader.writeFile(pathEsp, buff).catch((err) => {
-            console.error("Error: " + err + "\n");
-            throw 1;
-        })
-        console.log(cmd.toString() + "\n");
+        for (let file of buildFiles) {
+            if (!file.path.includes(".js")) {
+                continue
+            }
 
+            let FileContents = await vscode.workspace.fs.readFile(file);
+
+            let code = decoder.decode(FileContents);
+
+            let pathEsp: string = "code/" + file.path.split("build/")[1];
+
+            let buff = Buffer.from(code, "utf-8")
+            const cmd = await device.uploader.writeFile(pathEsp, buff).catch((err) => {
+                console.error("Error: " + err + "\n");
+                throw 1;
+            })
+            console.log(cmd.toString() + "\n");
+
+            await sleep(200);
+        }
         //});    
 
         await device.controller.start("index.js").catch((err) => {
@@ -272,9 +556,8 @@ export class Commands {
             console.log("Unlocked device")
         });
 
-        this.channel.appendLine('Done!')
+        this.channel.appendLine('Done Flashing!')
     }
-
 
     protected async buildFlashMonitor(): Promise<void> {
         vscode.window.showInformationMessage('Build Flash Monitor')

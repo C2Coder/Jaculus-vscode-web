@@ -51,29 +51,58 @@
   "contributes": {
     "commands": [
       {
-        "command": "jaculus-web.listDevices",
+        "command": "jaculus.selectPort",
+        "title": "Jaculus: Select Port"
+      },
+      {
+        "command": "jaculus.connect",
+        "title": "Jaculus: Connect"
+      },
+      {
+        "command": "jaculus.disconnect",
+        "title": "Jaculus: Disconnect"
+      },
+      {
+        "command": "jaculus.listDevices",
         "title": "Jaculus: List Devices"
       },
       {
-        "command": "jaculus-web.build",
+        "command": "jaculus.build",
         "title": "Jaculus: Build"
       },
       {
-        "command": "jaculus-web.flash",
+        "command": "jaculus.flash",
         "title": "Jaculus: Flash"
       },
       {
-        "command": "jaculus-web.monitor",
+        "command": "jaculus.monitor",
         "title": "Jaculus: Monitor"
       },
       {
-        "command": "jaculus-web.build-flash-monitor",
+        "command": "jaculus.stopMonitor",
+        "title": "Jaculus: Stop Monitor"
+      },
+      {
+        "command": "jaculus.build-flash-monitor",
         "title": "Jaculus: Build Flash Monitor"
       },
       {
-        "command": "jaculus-web.connect",
-        "title": "Jaculus: Connect"
+        "command": "jaculus.openInstaller",
+        "title": "Jaculus: Open Installer"
+      },
+      {
+        "command": "jaculus.openGettingStarted",
+        "title": "Jaculus: Open Getting Started"
+      },
+      {
+        "command": "jaculus.installLib",
+        "title": "Jaculus: Install Library"
+      },
+      {
+        "command": "jaculus.getLibExample",
+        "title": "Jaculus: Get Library Example"
       }
+
     ],
     "viewsContainers": {
       "activitybar": [
