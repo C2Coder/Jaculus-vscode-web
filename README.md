@@ -24,9 +24,9 @@ A list of all commands possible
 
 `Jaculus-dosc: Open Getting Started` - Opens [Getting Started documentation](https://jaculus.org/getting-started) <br>
 
-`Jaculus-libs: Install Library` - Installs libraries from [Jaculus library managr](https://c2coder.github.io/Jaculus-libraries) <br>
+`Jaculus-libs: Install Library` - Installs libraries from [Jaculus library manager](https://c2coder.github.io/Jaculus-libraries) <br>
 
-`Jaculus-libs: Get Library Example` - Gets examples also from [Jaculus library managr](https://c2coder.github.io/Jaculus-libraries) <br>
+`Jaculus-libs: Get Library Example` - Gets examples also from [Jaculus library manager](https://c2coder.github.io/Jaculus-libraries) <br>
 
 \* asks for folder, use the root folder with the `tsconfig.json` file
 

@@ -9,7 +9,7 @@
   "author": "Rob Moran <rob@thegecko.org>",
   "license": "MIT",
   "browser": "dist/browser/extension.js",
-  "repository": "https://github.com/thegecko/jaculus-web-web-extension",
+  "repository": "https://github.com/thegecko/jaculus-web-extension",
   "qna": false,
   "engines": {
     "vscode": "^1.50.0"
@@ -107,7 +107,7 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "jaculus-web",
+          "id": "jaculus",
           "title": "Jaculus",
           "icon": "$(preview)"
         }

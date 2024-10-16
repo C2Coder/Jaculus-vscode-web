@@ -277,7 +277,7 @@ export class Commands {
         if (this.buttons == undefined) {
             return
         }
-        this.buttons.connect.command = "jaculus-web.disconnect";
+        this.buttons.connect.command = "jaculus.disconnect";
         this.buttons.connect.text = "$(plug) Disconnect";
         this.buttons.connect.tooltip = "Jaculus Disconnect";
 
@@ -304,7 +304,7 @@ export class Commands {
             return
         }
 
-        this.buttons.connect.command = "jaculus-web.connect";
+        this.buttons.connect.command = "jaculus.connect";
         this.buttons.connect.text = "$(plug) Connect";
         this.buttons.connect.tooltip = "Jaculus Connect";
 
@@ -336,20 +336,20 @@ export class Commands {
     }
 
     protected async monitor(): Promise<void> {
+        if (this.device === undefined) {
+            vscode.window.showErrorMessage('Monitor: No device connected');
+            return;
+        }
         this.monitoring = true;
 
         if (this.buttons == undefined) {
             return
         }
 
-        this.buttons.monitor.command = "jaculus-web.stopMonitor";
+        this.buttons.monitor.command = "jaculus.stopMonitor";
         this.buttons.monitor.text = "$(device-desktop) Stop Monitoring";
         this.buttons.monitor.tooltip = "Jaculus Stop Monitoring";
 
-        if (this.device === undefined) {
-            vscode.window.showErrorMessage('Monitor: No device connected');
-            return;
-        }
 
         this.device.programOutput.onData((data) => {
             this.channel.append(data.toString());
@@ -365,20 +365,20 @@ export class Commands {
     }
 
     protected async stopMonitor(): Promise<void> {
+        if (this.device === undefined) {
+            vscode.window.showErrorMessage('Stop Monitor: No device connected');
+            return;
+        }
         this.monitoring = false;
 
         if (this.buttons == undefined) {
             return
         }
 
-        this.buttons.monitor.command = "jaculus-web.monitor";
+        this.buttons.monitor.command = "jaculus.monitor";
         this.buttons.monitor.text = "$(device-desktop) Monitor";
         this.buttons.monitor.tooltip = "Jaculus Monitor";
 
-        if (this.device === undefined) {
-            vscode.window.showErrorMessage('Stop Monitor: No device connected');
-            return;
-        }
 
         this.device.programOutput.onData((data) => {
         });
