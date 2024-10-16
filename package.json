@@ -88,19 +88,19 @@
       },
       {
         "command": "jaculus.openInstaller",
-        "title": "Jaculus: Open Installer"
+        "title": "Jaculus-docs: Open Installer"
       },
       {
         "command": "jaculus.openGettingStarted",
-        "title": "Jaculus: Open Getting Started"
+        "title": "Jaculus-docs: Open Getting Started"
       },
       {
         "command": "jaculus.installLib",
-        "title": "Jaculus: Install Library"
+        "title": "Jaculus-libs: Install Library"
       },
       {
         "command": "jaculus.getLibExample",
-        "title": "Jaculus: Get Library Example"
+        "title": "Jaculus-libs: Get Library Example"
       }
 
     ],
