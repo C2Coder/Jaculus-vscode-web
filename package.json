@@ -2,14 +2,14 @@
   "name": "Jaculus-web-extension",
   "displayName": "Jaculus Web Extension",
   "description": "VS Code Web Extension for Jaculus",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "preview": true,
   "private": true,
-  "publisher": "thegecko",
-  "author": "Rob Moran <rob@thegecko.org>",
+  "publisher": "C2Coder",
+  "author": "C2Coder",
   "license": "MIT",
   "browser": "dist/browser/extension.js",
-  "repository": "https://github.com/thegecko/jaculus-web-extension",
+  "repository": "https://github.com/C2Coder/Jaculus-vscode-web",
   "qna": false,
   "engines": {
     "vscode": "^1.96.0"
@@ -23,7 +23,7 @@
     "build": "webpack --mode production",
     "watch": "webpack -w",
     "package": "vsce package --yarn",
-    "browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. ."
+    "browser": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=. data"
   },
   "dependencies": {
     "@vscode/webview-ui-toolkit": "^0.9.1",
