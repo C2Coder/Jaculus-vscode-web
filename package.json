@@ -2,7 +2,7 @@
   "name": "Jaculus-web-extension",
   "displayName": "Jaculus Web Extension",
   "description": "VS Code Web Extension for Jaculus",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "preview": true,
   "private": true,
   "publisher": "C2Coder",
