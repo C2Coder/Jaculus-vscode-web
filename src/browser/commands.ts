@@ -150,8 +150,10 @@ export class Commands {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
+                const outFolder: vscode.Uri = ((libraries[selectedLibrary.label].folder == "@types") ? vscode.Uri.joinPath(folder[0], "@types", file) : vscode.Uri.joinPath(folder[0], "src", "libs", file))
+            
                 const fileContents = await response.text();
-                await vscode.workspace.fs.writeFile(vscode.Uri.joinPath(folder[0], "src", "libs", file), new TextEncoder().encode(fileContents))
+                await vscode.workspace.fs.writeFile(outFolder, new TextEncoder().encode(fileContents))
             }
 
             vscode.window.showInformationMessage(`Installed: ${selectedLibrary.label}`);
