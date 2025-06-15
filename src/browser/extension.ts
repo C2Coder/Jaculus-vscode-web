@@ -5,19 +5,12 @@ import { Commands } from './commands';
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
     const color = "#ff8500";
 
-    let portBtn = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-    portBtn.command = "jaculus.selectPort";
-    portBtn.text = "$(plug) Select Port";
-    portBtn.tooltip = "Jaculus Select Port";
-    portBtn.color = color;
-    portBtn.show();
-
-    let connectionBtn = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-    connectionBtn.command = "jaculus.connect";
-    connectionBtn.text = "$(plug) Connect";
-    connectionBtn.tooltip = "Jaculus Connect";
-    connectionBtn.color = color;
-    connectionBtn.show();
+    let connectBtn = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    connectBtn.command = "jaculus.connect";
+    connectBtn.text = "$(plug) Connect";
+    connectBtn.tooltip = "Jaculus Connect";
+    connectBtn.color = color;
+    connectBtn.show();
 
     let buildBtn = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
     buildBtn.command = "jaculus.build";
@@ -48,25 +41,32 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
     buildFlashMonitorBtn.show();
 
     let installLibBtn = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-    buildFlashMonitorBtn.command = "jaculus.installLib";
-    buildFlashMonitorBtn.text = "$(folder-library) Install Library";
-    buildFlashMonitorBtn.tooltip = "Install Library";
-    buildFlashMonitorBtn.color = color;
-    buildFlashMonitorBtn.show();
+    installLibBtn.command = "jaculus.installLib";
+    installLibBtn.text = "$(folder-library) Install Library";
+    installLibBtn.tooltip = "Jaculus Install Library";
+    installLibBtn.color = color;
+    installLibBtn.show();
 
+    let getExampleBtn = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    getExampleBtn.command = "jaculus.getLibExample";
+    getExampleBtn.text = "$(book) Get Example";
+    getExampleBtn.tooltip = "Jaculus Get Example";
+    getExampleBtn.color = color;
+    getExampleBtn.show();
+
+    
+    // "connect": connectionBtn,
     let buttons = {
-        "selectPort": portBtn,
-        "connect": connectionBtn,
+        "connect": connectBtn,
         "build": buildBtn,
         "flash": flashBtn,
         "monitor": monitorBtn,
         "buildFlashMonitor": buildFlashMonitorBtn,
         "installLib":installLibBtn,
+        "getExample": getExampleBtn
     }
-    //const webusbView = new JaculusWebView(context.extensionUri);
-    const commands = new Commands();
 
-    //await webusbView.activate(context);
+    const commands = new Commands();
     await commands.activate(context, buttons);
 
 

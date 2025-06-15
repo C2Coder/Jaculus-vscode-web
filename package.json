@@ -2,7 +2,7 @@
   "name": "Jaculus-web-extension",
   "displayName": "Jaculus Web Extension",
   "description": "VS Code Web Extension for Jaculus",
-  "version": "2.0.1",
+  "version": "2.1.0",
   "preview": true,
   "private": true,
   "publisher": "C2Coder",
@@ -51,20 +51,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "jaculus.selectPort",
-        "title": "Jaculus: Select Port"
-      },
-      {
         "command": "jaculus.connect",
         "title": "Jaculus: Connect"
-      },
-      {
-        "command": "jaculus.disconnect",
-        "title": "Jaculus: Disconnect"
-      },
-      {
-        "command": "jaculus.listDevices",
-        "title": "Jaculus: List Devices"
       },
       {
         "command": "jaculus.build",

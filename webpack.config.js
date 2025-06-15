@@ -37,7 +37,6 @@ const common = {
             "https": false,
             "http": false,
             "os": false,
-
         }
     },
     externals: {
